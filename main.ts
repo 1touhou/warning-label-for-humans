@@ -22,7 +22,19 @@ import { dirname, join } from "node:path";
 const LINE =
   "WARNING: This human runs on caffeine and confidence, has no off switch, and forgets why it entered the room.";
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output/entry.txt";
+// Defensive gate: the competition requires a single line of 1-160 chars.
+if (LINE.length < 1 || LINE.length > 160) {
+  throw new Error(`entry line must be 1-160 chars, got ${LINE.length}`);
+}
+
+// Resolve the output location. MAKEFUN_OUTPUT_DIR may name a directory or a
+// .txt file; an unset, empty, or whitespace-only value falls back to the
+// default instead of resolving to a bare "entry.txt" in the working dir.
+const rawOut = process.env.MAKEFUN_OUTPUT_DIR;
+const outDir =
+  rawOut !== undefined && rawOut.trim() !== ""
+    ? rawOut
+    : "/output/entry.txt";
 const outPath = outDir.endsWith(".txt") ? outDir : join(outDir, "entry.txt");
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, LINE, "utf8");
